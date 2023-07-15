@@ -1,29 +1,66 @@
 from bottle import Bottle, request, run, route
-import time
-from datetime import datetime
+import socket
+import pickle
+import threading
 
-app = Bottle()
-
-moves = {}
-
-
-@route('/test')
-def handle_post():
-    return "test"
-
-
-@route('/events', method='POST')
-def handle_post():
-    global moves
-    moves = {x: y for x, y in enumerate(request.json)}
-    print(moves)
+password = 'password'
+server = socket.create_server(('localhost', 5555))
+server.listen(100)
+package_size = 2048
+streamer = ""
+replayers = []
+print("Waiting for a connection")
 
 
-@route('/events', method='GET')
-def handle_get():
-    print(moves)
-    return moves
+def replayers_thread(moves):
+    for replayer in replayers:
+        try:
+            replayer.sendall(b"test")
+        except ConnectionResetError as e:
+            print(e)
+            replayers.remove(replayer)
+    return True
 
 
-if __name__ == '__main__':
-    run(host='127.0.0.1', port=8080, debug=False)
+def streamer_thread(conn):
+    global streamer, moves
+    while True:
+        try:
+            data = conn.recv(package_size)
+            reply = pickle.loads(data)
+            moves = reply
+            threading.Thread(target=replayers_thread, args=(moves,)).start()
+            print(threading.active_count())
+        except ConnectionResetError as e:
+            print(e)
+            break
+    streamer = ""
+    return
+
+
+def threaded_client(conn, addr):
+    global streamer
+    conn.send(b"Waiting for password")
+    data = conn.recv(package_size)
+    reply = data.decode('utf-8')
+    if reply == password:
+        conn.sendall(b"Waiting for role")
+        data = conn.recv(package_size)
+        reply = data.decode('utf-8')
+        if reply == '0':  # streamer
+            if not streamer:
+                conn.sendall(b"Successfully connected")
+                streamer = addr
+                threading.Thread(target=streamer_thread, args=(conn,)).start()
+        elif reply == '1':  # replayer
+            conn.sendall(b"Successfully connected")
+            replayers.append(conn)
+            return
+    conn.sendall(b"Failed to connect")
+    return
+
+
+while True:
+    conn, addr = server.accept()
+    print("Connected to: ", addr)
+    threading.Thread(target=threaded_client, args=(conn, addr)).start()
