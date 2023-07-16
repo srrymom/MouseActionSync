@@ -10,7 +10,7 @@ import errno
 class Network:
     def __init__(self):
         self.client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.host = "localhost"  # адресс сервера
+        self.host = "localhost"  # адрес сервера
         self.port = 5555
         self.package_size = 2048
         self.addr = (self.host, self.port)

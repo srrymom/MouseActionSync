@@ -4,7 +4,8 @@ import logging
 import pickle
 
 password = 'password'
-server = socket.create_server(('localhost', 5555))  # пустым если на сервере
+# оставляем адрес пустым если на сервере
+server = socket.create_server(('localhost', 5555))
 server.listen(100)
 package_size = 2048
 streamer = ""

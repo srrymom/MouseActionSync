@@ -16,7 +16,7 @@ except:
 class Network:
     def __init__(self):
         self.client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.host = "localhost"  # адресс сервера
+        self.host = "localhost"  # адрес сервера
         self.port = 5555
         self.package_size = 2048
         self.addr = (self.host, self.port)
@@ -69,20 +69,19 @@ class MouseReplayer:
     def start(self):
         while True:
             events = self.network.receive()
-            print("delayu")
-            # for event in events.values():
-            #     print(event)
-            #     x, y, action = event
-            #     time.sleep(self.delay)
-            #     self.mouse_controller.position = (x, y)
-            #     if action == 1:
-            #         self.mouse_controller.press(Button.left)
-            #     elif action == 2:
-            #         self.mouse_controller.press(Button.right)
-            #     elif action == 3:
-            #         self.mouse_controller.release(Button.left)
-            #     elif action == 4:
-            #         self.mouse_controller.release(Button.right)
+            for event in events.values():
+                print(event)
+                x, y, action = event
+                time.sleep(self.delay)
+                self.mouse_controller.position = (x, y)
+                if action == 1:
+                    self.mouse_controller.press(Button.left)
+                elif action == 2:
+                    self.mouse_controller.press(Button.right)
+                elif action == 3:
+                    self.mouse_controller.release(Button.left)
+                elif action == 4:
+                    self.mouse_controller.release(Button.right)
 
 
 replayer = MouseReplayer()
